@@ -1,4 +1,11 @@
-#include "keygen.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <stdbool.h>
+#include <time.h>
+
+int str_to_int(char*);
+void generate_key(int);
 
 /*
 Generates a random sequence of characters in range [A-Z, ]
