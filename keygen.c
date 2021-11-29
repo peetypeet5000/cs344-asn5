@@ -43,6 +43,7 @@ int str_to_int(char* argument) {
 
 /*
 Generates key of specified length and sends to stdout
+*/
 void generate_key(int length) {
     // Allocate space for key + newline
     char output[length + 2];
