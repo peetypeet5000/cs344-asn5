@@ -1,17 +1,12 @@
-CC = gcc --std=gnu99 -pthread -g
-exe_file = line_processor
-$(exe_file): main.o processing.o buffers.o
-	$(CC) main.o processing.o buffers.o -o $(exe_file)
+CC = gcc --std=gnu99 -g -W
 
-processing.o: processing.c processing.h
-	$(CC) -c processing.c
-buffers.o: buffers.c buffers.h
-	$(CC) -c buffers.c
-main.o: main.c main.h
-	$(CC) -c main.c
+all: keygen
+keygen: 
+	$(CC) keygen.c -o keygen
 
+
+# Helper makefile function
 clean:
-	rm *.o $(exe_file)
-
-tar:
-	tar -cvf $(exe_file).tar *.c *.h Makefile
+	rm keygen
+zip:
+	zip -cvf lamontap-asn5.tar *.c *.h Makefile
