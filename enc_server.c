@@ -234,7 +234,7 @@ void recieve_data(int connection_socket, char** plaintext, char** key) {
         // Manually append null for use in strcat
         buffer[999] = '\0';
 
-        printf("buffer %s\n", buffer);
+        //printf("buffer %s\n", buffer);
 
 		// Append buffer to result string
 		result = realloc(result, ++count * 1000 + 1);
@@ -246,14 +246,10 @@ void recieve_data(int connection_socket, char** plaintext, char** key) {
     *key = malloc(strlen(first_dollar + 1) + 1);
     strncpy(*key, first_dollar + 1, strlen(first_dollar + 1));
 
-    printf("key in get %s\n", *key);
-
     // Copy in first string too
     *(first_dollar + 1) = '\0';
     *plaintext = malloc(strlen(result) + 1);
     strncpy(*plaintext, result, strlen(result) + 1);
-
-    printf("plaintext in get %s\n", *plaintext);
 
     free(result);
 }
@@ -292,8 +288,8 @@ encryption
 char* do_encryption(char* plaintext, char* key) {
     char* result = malloc(strlen(plaintext) + 2);
 
-    printf("plaintext %s\n", plaintext);
-    printf("key %s\n", key);
+    //printf("plaintext %s\n", plaintext);
+    //printf("key %s\n", key);
 
     // Encrypt each character in the plaintext file
     for(int i = 0; i < (int)strlen(plaintext) - 1; i++) {
@@ -312,13 +308,11 @@ char* do_encryption(char* plaintext, char* key) {
         result[i] = revert_character_value(encryption_result);
     }
 
-    printf("encryption result %s\n", result);
+    //printf("encryption result %s\n", result);
 
     // Add $ as last character and null termination
     result[strlen(plaintext) - 1] = '$';
     result[strlen(plaintext)] = '\0';
-
-    printf("encryption result 2.0 %s\n", result);
 
     return result;
 }

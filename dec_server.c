@@ -235,7 +235,7 @@ void recieve_data(int connection_socket, char** ciphertext, char** key) {
         // Manually append null for use in strcat
         buffer[999] = '\0';
 
-        printf("buffer %s\n", buffer);
+        //printf("buffer %s\n", buffer);
 
 		// Append buffer to result string
 		result = realloc(result, ++count * 1000 + 1);
@@ -250,7 +250,7 @@ void recieve_data(int connection_socket, char** ciphertext, char** key) {
     // Copy in first string too
     *(first_dollar + 1) = '\0';
     *ciphertext = malloc(strlen(result) + 1);
-    strncpy(*ciphertext, result, strlen(result));
+    strncpy(*ciphertext, result, strlen(result) + 1);
 
     free(result);
 }
@@ -289,8 +289,8 @@ to decrypt it
 char* do_encryption(char* ciphertext, char* key) {
     char* result = malloc(strlen(ciphertext) + 2);
     
-    printf("ciphertext %s\n", ciphertext);
-    printf("key %s\n", key);
+    //printf("ciphertext %s\n", ciphertext);
+    //printf("key %s\n", key);
 
     // Encrypt each character in the ciphertext file
     for(int i = 0; i < (int)strlen(ciphertext) - 1; i++) {
@@ -311,8 +311,6 @@ char* do_encryption(char* ciphertext, char* key) {
         // Convert back to ASCII and store
         result[i] = revert_character_value(encryption_result);
     }
-
-    printf("encryption result %s\n", result);
 
     // Add $ as last character and null termination
     result[strlen(ciphertext) - 1] = '$';
