@@ -30,16 +30,16 @@ void receive_result(int);
 int main(int argc, char *argv[]) {	
 	// Check usage & args
 	if (argc != 4) {
-		fprintf(stderr, "USAGE: %s <plaintext> <key> <port>\n", argv[0]);
+		fprintf(stderr, "USAGE: %s <ciphertext> <key> <port>\n", argv[0]);
 		exit(0);
 	}
 
 	// Get both plaintext and key
-	char* plaintext = get_file_line(argv[1]);
+	char* ciphertext = get_file_line(argv[1]);
 	char* key = get_file_line(argv[2]);
 
 	// Check the key is long enough
-	if(strlen(plaintext) > strlen(key)) {
+	if(strlen(ciphertext) > strlen(key)) {
 		fprintf(stderr, "CLIENT: Key shorter than plaintext. Aborting...");
 		exit(2);
 	}
@@ -55,7 +55,7 @@ int main(int argc, char *argv[]) {
 
 	// If all connecting happened correnctly, continue with main program
 	// Send plaintext and key to server
-	send_line(socketFD, plaintext);
+	send_line(socketFD, ciphertext);
 	send_line(socketFD, key);
 
 	// Receive encrypted message
@@ -64,7 +64,7 @@ int main(int argc, char *argv[]) {
 	// Close the socket
 	close(socketFD);
 
-	free(plaintext);
+	free(ciphertext);
 	free(key);
 
 	exit(EXIT_SUCCESS);
@@ -93,7 +93,7 @@ void setupAddressStruct(struct sockaddr_in *address, int portNumber) {
 	// Get the DNS entry for localhost
 	struct hostent *hostInfo = gethostbyname("localhost");
 	if (hostInfo == NULL) {
-		fprintf(stderr, "enc_client error: error, no such host\n");
+		fprintf(stderr, "dec_client error: error, no such host\n");
 		exit(0);
 	}
 
@@ -113,7 +113,7 @@ int initilize_socket(int port) {
 	// Make socket file descriptor
 	socketFD = socket(AF_INET, SOCK_STREAM, 0);
 	if (socketFD < 0) {
-		error("enc_client error: error opening socket");
+		error("dec_client error: error opening socket");
 	}
 
 	// Set up the server address struct, set command-line arg port
@@ -122,7 +122,7 @@ int initilize_socket(int port) {
 	// Connect to server
 	int connect_return = connect(socketFD, (struct sockaddr *)&serverAddress, sizeof(serverAddress));
 	if (connect_return < 0) {
-		error("enc_client error: error connecting");
+		error("CLIENT: ERROR connecting");
 	}
 
 	return socketFD;
@@ -130,26 +130,26 @@ int initilize_socket(int port) {
 
 
 /*
-Sends an 'E' to a socket to indicate this is the
-encryption client.
+Sends an 'D' to a socket to indicate this is the
+decryption client.
 */
 void send_greeting(int socketFD) {
-	char* greeting = "E";
+	char* greeting = "D";
 	int chars_written = send(socketFD, greeting, 1, 0);
 
 	if (chars_written < 0) {
-		error("enc_client error: error writing to socket");
+		error("CLIENT: ERROR writing to socket");
 	}
 	if (chars_written < 1) {
-		fprintf(stderr, "enc_client: Greeting not sent to client!\n");
+		fprintf(stderr, "CLIENT: Greeting not sent to client!\n");
 	}
 }
 
 
 
 /*
-Receives an 'E' to a socket to indicate this is the
-encryption client.
+Receives an 'D' to a socket to indicate this is the
+decryption server.
 */
 void receive_greeting(int socketFD) {
 	char buffer[1] = {0};
@@ -157,12 +157,12 @@ void receive_greeting(int socketFD) {
 	// Read message from server
 	int chars_read = recv(socketFD, buffer, 1, 0);
 	if (chars_read < 0) {
-		error("enc_client: error reading from socket");
+		error("CLIENT: ERROR reading from socket");
 	}
 
 	// If the message from the server is incorrect, exit
-	if(strncmp("E", buffer, 1) != 0) {
-		fprintf(stderr, "enc_client: Attempted to connect to wrong server type. Aborting.\n");
+	if(strncmp("D", buffer, 1) != 0) {
+		fprintf(stderr, "CLIENT: Attempted to connect to wrong server type. Aborting.\n");
 		exit(2);	
 	}
 }
@@ -181,7 +181,7 @@ char* get_file_line(char* file_name) {
 	// Open  file
 	FILE* file = fopen(file_name, "r");
 	if(file == NULL) {
-		error("enc_client error: Error opening file");
+		error("dec_client error: Error opening file");
 	}
 
 	// Get a line from the file
@@ -190,7 +190,7 @@ char* get_file_line(char* file_name) {
 	// Check if any unallowed characters exist
 	for(int i = 0; i < (int)strlen(buffer) - 1; i++) {
 		if(buffer[i] != 32 && (buffer[i] < 65 || buffer[i] > 90)) {
-			printf("enc_client error: input contains bad characters");
+			printf("dec_client error: input contains bad characters");
 			exit(2);
 		}
 	}
@@ -214,7 +214,7 @@ void send_line(int socketFD, char* line) {
     do {
 		chars_written += send(socketFD, line + chars_written, strlen(line) - chars_written, 0);
 		if (chars_written < 0) {
-			error("enc_client error: error writing to socket");
+			error("dec_client error: error writing to socket");
 		}
 	} while(chars_written < (int)strlen(line));
 }

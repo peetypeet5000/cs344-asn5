@@ -62,7 +62,7 @@ int main(int argc, char *argv[]) {
 
         // If they have, decrement counter
         if(wait_pid < 0) {
-            error("enc_server: Error waiting on child process");
+            error("dec_server: Error waiting on child process");
         } else if (wait_pid != 0) {
             current_connections--;
         }
@@ -115,7 +115,7 @@ int initilize_socket(int port) {
     // Create the socket that will listen for connections
     int listenSocket = socket(AF_INET, SOCK_STREAM, 0);
     if (listenSocket < 0) {
-        error("enc_server: error opening socket");
+        error("dec_server: error opening socket");
     }
 
     // Set up the address struct for the server socket
@@ -123,7 +123,7 @@ int initilize_socket(int port) {
 
     // Associate the socket to the port
     if (bind(listenSocket, (struct sockaddr *)&serverAddress, sizeof(serverAddress)) < 0) {
-        error("enc_server: error on binding");
+        error("dec_server: error on binding");
     }
 
     return listenSocket;
@@ -138,7 +138,7 @@ int accept_connection(int listen_socket) {
     // Accept the connection request which creates a connection socket
     int connection_socket = accept(listen_socket, (struct sockaddr *)&client_address, &size_of_client_info);
     if (connection_socket < 0) {
-        error("enc_server: error on accept");
+        error("dec_server: error on accept");
     }
 
     return connection_socket;
@@ -147,23 +147,23 @@ int accept_connection(int listen_socket) {
 
 
 void child_process(int connection_socket) {
-    char* plaintext = NULL;
+    char* ciphertext = NULL;
     char* key = NULL;
 
     // Receieve and send greeting to client connected
     process_greeting(connection_socket);
 
     // If all greetings are OK, continue with actual processing
-    recieve_data(connection_socket, &plaintext, &key);
+    recieve_data(connection_socket, &ciphertext, &key);
 
     // Encrypt message
-    char* result = do_encryption(plaintext, key);
+    char* result = do_encryption(ciphertext, key);
 
     // Send result back to client
     send_line(connection_socket, result);
 
     // Free memory
-    free(plaintext);
+    free(ciphertext);
     free(key);
     free(result);
 
@@ -177,33 +177,33 @@ void child_process(int connection_socket) {
 
 /*
 Receives and sends the greeting to the client. Checks both are
-of type encryption
+of type decryption
 */
 void process_greeting(int connection_socket) {
 	char buffer[1] = {0};
-    char* greeting = "E";
+    char* greeting = "D";
 
 	// Read message from client
 	int chars_read = recv(connection_socket, buffer, 1, 0);
 	if (chars_read < 0) {
-		error("enc_server: error reading greeting from socket");
+		error("dec_server: Error reading greeting from socket");
         exit(2);
 	}
 
 	// If the message from the server is incorrect, exit
-	if(strncmp("E", buffer, 1) != 0) {
-		fprintf(stderr, "enc_server: Client is of wrong type. Killing child process.\n");
+	if(strncmp("D", buffer, 1) != 0) {
+		fprintf(stderr, "dec_server: Client is of wrong type. Killing child process.\n");
 		exit(2);
 	}
 
 	int chars_written = send(connection_socket, greeting, 1, 0);
 	if (chars_written < 0) {
-		error("enc_server: error sending greeting to socket");
+		error("dec_server: error sending greeting to socket");
         exit(2);
         
 	}
 	if (chars_written < 1) {
-		fprintf(stderr, "enc_server: Greeting not sent to server!\n");
+		fprintf(stderr, "dec_server: Greeting not sent to server!\n");
         exit(2);
 	}
 }
@@ -214,7 +214,7 @@ void process_greeting(int connection_socket) {
 Gets both the plaintext and key from the client,
 returns in 2D array
 */
-void recieve_data(int connection_socket, char** plaintext, char** key) {
+void recieve_data(int connection_socket, char** ciphertext, char** key) {
     char* result = NULL;
     int count = 0;
     char buffer[1000];
@@ -228,7 +228,7 @@ void recieve_data(int connection_socket, char** plaintext, char** key) {
 		// Read from socket
 		int chars_read = recv(connection_socket, buffer, 999, 0);
 		if (chars_read < 0) {
-			error("enc_server: error reading result from socket");
+			error("CLIENT: ERROR reading result from socket");
 		}
 
         // Manually append null for use in strcat
@@ -246,8 +246,8 @@ void recieve_data(int connection_socket, char** plaintext, char** key) {
 
     // Copy in first string too
     *(first_dollar + 1) = '\0';
-    *plaintext = malloc(strlen(result) + 1);
-    strncpy(*plaintext, result, strlen(result));
+    *ciphertext = malloc(strlen(result) + 1);
+    strncpy(*ciphertext, result, strlen(result));
 
     free(result);
 }
@@ -280,42 +280,38 @@ bool is_double_terminated(char* result) {
 
 
 /*
-Takes the plaintext and key and performs the modular addition
-encryption
+Takes the ciphertext and key and performs the modular subtraction
+to decrypt it
 */
-char* do_encryption(char* plaintext, char* key) {
-    char* result = malloc(strlen(plaintext) + 2);
+char* do_encryption(char* ciphertext, char* key) {
+    char* result = malloc(strlen(ciphertext) + 1);
 
-    printf("plaintext %s\n", plaintext);
-    printf("key %s\n", key);
-
-    // Encrypt each character in the plaintext file
-    for(int i = 0; i < (int)strlen(plaintext) - 1; i++) {
+    // Encrypt each character in the ciphertext file
+    for(int i = 0; i < (int)strlen(ciphertext) - 1; i++) {
         // Get converted character value
-        int current_char_value = convert_character_value(plaintext[i]);
+        int current_char_value = convert_character_value(ciphertext[i]);
         int current_key_value = convert_character_value(key[i]);
 
-        // Do modular addition and store in result
-        int encryption_result = (current_char_value + current_key_value) % 27;
+        // Do modular addition and store in result, looping back around if neg
+        int encryption_result = current_char_value - current_key_value;
+        if(encryption_result < 0) {
+            encryption_result += 27;
+        }
 
         printf("res: %d plain: %d key: %d", encryption_result, current_char_value, current_key_value);
 
         char val = revert_character_value(encryption_result);
         if(val != 32 && (val < 65 || val > 90)) {
-			printf("weird char! char: %c, key: %c, plain %c", val, key[i], plaintext[i]);
+			printf("weird char! char: %c, key: %c, plain %c", val, key[i], ciphertext[i]);
 		}
 
         // Convert back to ASCII and store
         result[i] = revert_character_value(encryption_result);
     }
 
-    printf("encryption result %s\n", result);
-
     // Add $ as last character and null termination
-    result[strlen(plaintext) - 1] = '$';
-    result[strlen(plaintext)] = '\0';
-
-    printf("encryption result 2.0 %s\n", result);
+    result[strlen(ciphertext) - 1] = '$';
+    result[strlen(ciphertext)] = '\0';
 
     return result;
 }
