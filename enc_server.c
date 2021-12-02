@@ -234,6 +234,8 @@ void recieve_data(int connection_socket, char** plaintext, char** key) {
         // Manually append null for use in strcat
         buffer[999] = '\0';
 
+        printf("buffer %s\n", buffer);
+
 		// Append buffer to result string
 		result = realloc(result, ++count * 1000 + 1);
         strcat(result, buffer);
@@ -244,10 +246,14 @@ void recieve_data(int connection_socket, char** plaintext, char** key) {
     *key = malloc(strlen(first_dollar + 1) + 1);
     strncpy(*key, first_dollar + 1, strlen(first_dollar + 1));
 
+    printf("key in get %s\n", *key);
+
     // Copy in first string too
     *(first_dollar + 1) = '\0';
     *plaintext = malloc(strlen(result) + 1);
     strncpy(*plaintext, result, strlen(result));
+
+    printf("plaintext in get %s\n", *plaintext);
 
     free(result);
 }
@@ -298,12 +304,9 @@ char* do_encryption(char* plaintext, char* key) {
         // Do modular addition and store in result
         int encryption_result = (current_char_value + current_key_value) % 27;
 
-        printf("res: %d plain: %d key: %d", encryption_result, current_char_value, current_key_value);
+        //printf("res: %d plain: %d key: %d", encryption_result, current_char_value, current_key_value);
 
         char val = revert_character_value(encryption_result);
-        if(val != 32 && (val < 65 || val > 90)) {
-			printf("weird char! char: %c, key: %c, plain %c", val, key[i], plaintext[i]);
-		}
 
         // Convert back to ASCII and store
         result[i] = revert_character_value(encryption_result);

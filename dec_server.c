@@ -234,6 +234,8 @@ void recieve_data(int connection_socket, char** ciphertext, char** key) {
         // Manually append null for use in strcat
         buffer[999] = '\0';
 
+        printf("buffer %s\n", buffer);
+
 		// Append buffer to result string
 		result = realloc(result, ++count * 1000 + 1);
         strcat(result, buffer);
@@ -284,7 +286,10 @@ Takes the ciphertext and key and performs the modular subtraction
 to decrypt it
 */
 char* do_encryption(char* ciphertext, char* key) {
-    char* result = malloc(strlen(ciphertext) + 1);
+    char* result = malloc(strlen(ciphertext) + 2);
+    
+    printf("ciphertext %s\n", ciphertext);
+    printf("key %s\n", key);
 
     // Encrypt each character in the ciphertext file
     for(int i = 0; i < (int)strlen(ciphertext) - 1; i++) {
@@ -298,16 +303,15 @@ char* do_encryption(char* ciphertext, char* key) {
             encryption_result += 27;
         }
 
-        printf("res: %d plain: %d key: %d", encryption_result, current_char_value, current_key_value);
+        //printf("res: %d plain: %d key: %d", encryption_result, current_char_value, current_key_value);
 
         char val = revert_character_value(encryption_result);
-        if(val != 32 && (val < 65 || val > 90)) {
-			printf("weird char! char: %c, key: %c, plain %c", val, key[i], ciphertext[i]);
-		}
 
         // Convert back to ASCII and store
         result[i] = revert_character_value(encryption_result);
     }
+
+    printf("encryption result %s\n", result);
 
     // Add $ as last character and null termination
     result[strlen(ciphertext) - 1] = '$';
