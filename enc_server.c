@@ -45,7 +45,7 @@ int main(int argc, char *argv[]) {
             // Fork a child
             pid_t pid = fork();
             if(pid < 0) {
-                error("SERVER: Error forking child process");
+                error("enc_server: error forking child process");
             }
 
             // If this is the parent, increment counter
@@ -190,21 +190,21 @@ void process_greeting(int connection_socket) {
         exit(2);
 	}
 
-	// If the message from the server is incorrect, exit
-	if(strncmp("E", buffer, 1) != 0) {
-		fprintf(stderr, "enc_server: Client is of wrong type. Killing child process.\n");
-		exit(2);
-	}
-
+    // Send greeting back
 	int chars_written = send(connection_socket, greeting, 1, 0);
 	if (chars_written < 0) {
 		error("enc_server: error sending greeting to socket");
-        exit(2);
-        
+        exit(2);  
 	}
 	if (chars_written < 1) {
 		fprintf(stderr, "enc_server: Greeting not sent to server!\n");
         exit(2);
+	}
+
+    // If the message from the server is incorrect, exit
+	if(strncmp("E", buffer, 1) != 0) {
+		fprintf(stderr, "enc_server: Client is of wrong type. Killing child process.\n");
+		exit(2);
 	}
 }
 
@@ -372,7 +372,7 @@ void send_line(int socketFD, char* line) {
 		 chars_written += send(socketFD, line + chars_written, strlen(line) - chars_written, 0);
 
 		if (chars_written < 0) {
-			error("CLIENT: ERROR writing to socket");
+			error("enc_server: error writing to socket");
 		}
 	} while(chars_written < (int)strlen(line));
 }

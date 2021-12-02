@@ -40,7 +40,7 @@ int main(int argc, char *argv[]) {
 
 	// Check the key is long enough
 	if(strlen(plaintext) > strlen(key)) {
-		fprintf(stderr, "CLIENT: Key shorter than plaintext. Aborting...");
+		fprintf(stderr, "enc_client: Key shorter than plaintext. Aborting...");
 		exit(2);
 	}
 
@@ -190,7 +190,7 @@ char* get_file_line(char* file_name) {
 	// Check if any unallowed characters exist
 	for(int i = 0; i < (int)strlen(buffer) - 1; i++) {
 		if(buffer[i] != 32 && (buffer[i] < 65 || buffer[i] > 90)) {
-			printf("enc_client error: input contains bad characters");
+			fprintf(stderr, "enc_client error: input contains bad characters");
 			exit(2);
 		}
 	}
@@ -237,7 +237,7 @@ void receive_result(int socketFD) {
 		// Read from socket
 		int chars_read = recv(socketFD, buffer, 999, 0);
 		if (chars_read < 0) {
-			error("CLIENT: ERROR reading result from socket");
+			error("enc_client: error reading result from socket");
 		}
 
 		// Manually append null for use in srtcat

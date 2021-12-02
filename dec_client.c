@@ -122,7 +122,7 @@ int initilize_socket(int port) {
 	// Connect to server
 	int connect_return = connect(socketFD, (struct sockaddr *)&serverAddress, sizeof(serverAddress));
 	if (connect_return < 0) {
-		error("CLIENT: ERROR connecting");
+		error("dec_client: error connecting");
 	}
 
 	return socketFD;
@@ -138,10 +138,10 @@ void send_greeting(int socketFD) {
 	int chars_written = send(socketFD, greeting, 1, 0);
 
 	if (chars_written < 0) {
-		error("CLIENT: ERROR writing to socket");
+		error("dec_client: error writing to socket");
 	}
 	if (chars_written < 1) {
-		fprintf(stderr, "CLIENT: Greeting not sent to client!\n");
+		fprintf(stderr, "dec_client: Greeting not sent to server!\n");
 	}
 }
 
@@ -157,12 +157,12 @@ void receive_greeting(int socketFD) {
 	// Read message from server
 	int chars_read = recv(socketFD, buffer, 1, 0);
 	if (chars_read < 0) {
-		error("CLIENT: ERROR reading from socket");
+		error("dec_client: error reading from socket");
 	}
 
 	// If the message from the server is incorrect, exit
 	if(strncmp("D", buffer, 1) != 0) {
-		fprintf(stderr, "CLIENT: Attempted to connect to wrong server type. Aborting.\n");
+		fprintf(stderr, "dec_client: Attempted to connect to wrong server type. Aborting.\n");
 		exit(2);	
 	}
 }
@@ -237,7 +237,7 @@ void receive_result(int socketFD) {
 		// Read from socket
 		int chars_read = recv(socketFD, buffer, 999, 0);
 		if (chars_read < 0) {
-			error("CLIENT: ERROR reading result from socket");
+			error("dec_client: error reading result from socket");
 		}
 
 		// Manually append null for use in srtcat
