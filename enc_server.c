@@ -251,7 +251,7 @@ void recieve_data(int connection_socket, char** plaintext, char** key) {
     // Copy in first string too
     *(first_dollar + 1) = '\0';
     *plaintext = malloc(strlen(result) + 1);
-    strncpy(*plaintext, result, strlen(result));
+    strncpy(*plaintext, result, strlen(result) + 1);
 
     printf("plaintext in get %s\n", *plaintext);
 
